@@ -1,3 +1,5 @@
 .idea
 .DS_Store
 terraform.tfstate*
+.terraform*
+inventory.ini
