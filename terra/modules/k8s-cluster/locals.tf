@@ -1,7 +1,8 @@
 locals {
   master_names = [for m in module.kube_master  : m.droplet_name]
   worker_names = [for w in module.kube_workers : w.droplet_name]
-  all_names    = concat(local.master_names, local.worker_names)
+  nfs_names    = [module.nfs_server.droplet_name]
+  all_names    = concat(local.master_names, local.worker_names, local.nfs_names)
 
   masters_map = zipmap(
     [for m in module.kube_master : m.droplet_name],
@@ -11,12 +12,14 @@ locals {
     [for w in module.kube_workers : w.droplet_name],
     [for w in module.kube_workers : w.droplet_ip]
   )
-  name_ip     = merge(local.masters_map, local.workers_map)
+  nfs_map     = { (module.nfs_server.droplet_name) = module.nfs_server.droplet_ip }
+  name_ip     = merge(local.masters_map, local.workers_map, local.nfs_map)
 
   inventory = templatefile("${path.module}/templates/inventory.tpl", {
     all_names           = local.all_names
     control_plane_names = local.master_names
     worker_names        = local.worker_names
+    nfs_names           = local.nfs_names
     name_ip             = local.name_ip
   })
 }

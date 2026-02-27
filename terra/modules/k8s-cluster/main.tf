@@ -22,3 +22,9 @@ module "kube_workers" {
   ssh_keys = var.ssh_keys
 
 }
+
+
+module "nfs_server" {
+  source = "../droplet"
+  name   = "nfs-server"
+}

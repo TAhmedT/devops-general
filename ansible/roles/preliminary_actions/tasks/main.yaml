@@ -1,0 +1,64 @@
+- name: Add persistent br_netfilter module
+  modprobe:
+    name: br_netfilter
+    state: present
+    persistent: present
+
+- name: Sysctl settings
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_file: /etc/sysctl.d/50-kubernetes.conf
+    reload: yes
+  loop:
+    - { name: net.ipv4.ip_forward,                value: 1 }
+    - { name: net.bridge.bridge-nf-call-iptables, value: 1 }
+
+- name: Download k8s key
+  get_url:
+    url: "https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key"
+    dest: /tmp/k8s.key
+
+- name: K8s key to gpg
+  shell: cat /tmp/k8s.key | gpg --dearmor --yes -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Remove old k8s repo
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
+    filename: kubernetes
+    state: absent
+
+- name: Add k8s deb repo
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.35/deb/ /"
+    filename: kubernetes
+    state: present
+
+- name: Install base software
+  apt:
+    name: "{{ base_software }}"
+    state: present
+    update_cache: yes
+
+- name: Copy crictl config
+  copy:
+    src: files/crictl.yaml
+    dest: /etc/crictl.yaml
+
+- name: Start and enable all services
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop:
+    - chronyd
+    - containerd
+    - kubelet
+
+- name: Remove trash
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/k8s.key
