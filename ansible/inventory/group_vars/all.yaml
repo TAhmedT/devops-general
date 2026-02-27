@@ -1,0 +1,14 @@
+base_software:
+  - bash-completion
+  - python3
+  - tar
+  - containerd
+  - chrony
+  - kubectl
+  - kubelet
+  - kubeadm
+  - vim
+  - git
+  - jq
+  - rsync
+  - nfs-common

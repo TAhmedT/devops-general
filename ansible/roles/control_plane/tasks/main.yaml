@@ -1,0 +1,4 @@
+- name: Create k8s config dir
+  file:
+    path: /etc/kubernetes
+    state: directory

@@ -1,0 +1,15 @@
+- name: Install NFS server
+  apt:
+    name: nfs-kernel-server
+    state: present
+
+- name: Create share dir
+  file:
+    path: /mnt/nfs_share
+    state: directory
+
+- name: Copy exports file
+  copy:
+    src: files/exports
+    dest: /etc/exports
+  notify: Restart NFS server

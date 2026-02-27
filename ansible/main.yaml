@@ -1,0 +1,32 @@
+- name: Setup NFS server
+  hosts: nfs-server
+  become_user: root
+  become: yes
+
+  roles:
+    - { name: nfs_server, tags: nfs_server }
+
+- name: Setup debian 13 infra to K8S
+  hosts: all:!nfs-server
+  become_user: root
+  become: yes
+
+  roles:
+    - { name: preliminary_actions, tags: [ common, preliminary_actions ] }
+#    - FIREWALL
+
+- name: Setup control plane
+  hosts: control-plane
+  become: yes
+  become_user: root
+
+  roles:
+    - { name: control_plane, tags: control_plane }
+
+#- name: Setup worker node
+#  hosts:
+#  become: yes
+#  become_user: root
+#
+#  roles:
+#    - { }
